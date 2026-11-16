@@ -7,3 +7,4 @@ __pycache__/
 .ipynb_checkpoints/
 !results/*.csv
 models/
+!backend/data/retailers.csv
