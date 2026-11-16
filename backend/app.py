@@ -86,7 +86,9 @@ def check_city(city):
 
 
 # ---------- endpoints ----------
-
+@app.get("/")
+def home():
+    return {"message": "SunCast API is running. See /docs for all endpoints."}
 @app.get("/health")
 def health():
     return {"status": "ok", "model": MODEL_USED, "cities": list(CITIES)}
