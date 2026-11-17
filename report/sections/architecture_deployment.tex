@@ -1,0 +1,82 @@
+
+% ============================================================
+% BLOCK 2: new section, save as sections/architecture_deployment.tex
+% and add \input{sections/architecture_deployment} after the
+% Contribution Table / before the User Interface section.
+% Upload system_architecture.png into the figures folder first.
+% ============================================================
+
+\section{System Architecture and Deployment}
+
+SunCast is split into two hosted parts that talk to each other over the internet. The frontend is a Streamlit app that the user sees and clicks around in. The backend is a FastAPI service that does all the real work: it gets the weather forecast, runs the model, works out the savings and answers chat questions. The frontend never runs the model itself. It only sends the user's inputs to the backend and shows what comes back. Figure~\ref{fig:architecture} shows how the pieces fit together.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{system_architecture.png}
+\caption{SunCast system architecture. The Streamlit frontend sends the user's inputs to the FastAPI backend, which calls the Open-Meteo forecast API and an LLM API.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Backend}
+
+The backend lives in the backend folder of the repository and is made up of four small Python files, so each one has a single job:
+
+\begin{itemize}
+    \item app.py sets up the FastAPI app, checks the user's inputs and defines the endpoints.
+    \item weather.py stores the coordinates of the five cities and gets the hourly forecast from the Open-Meteo API (shortwave radiation and air temperature, in Pakistan time). If the request fails it tries once more before giving up.
+    \item physics.py holds the physics formula from our baseline, adapted for a rooftop system.
+    \item predictor.py loads the trained gradient boosting model and its scaler and turns the forecast into hourly power for the user's system.
+\end{itemize}
+
+Table~\ref{tab:endpoints} lists the endpoints. The request and response formats were agreed by the whole group before coding started, so the frontend, the backend and the model code could be written at the same time and plugged together at the end.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lll}
+\toprule
+Endpoint & Input & What it returns \\
+\midrule
+GET /health & none & status, which model is in use, list of cities \\
+POST /predict & city, system size (kW), tariff (Rs), days (1 to 7) & hourly kW, daily kWh, savings in Rs, baseline \\
+GET /retailers & city & solar shops in that city from retailers.csv \\
+POST /chat & question, city & the chatbot's reply \\
+\bottomrule
+\end{tabular}
+\caption{Backend endpoints.}
+\label{tab:endpoints}
+\end{table}
+
+FastAPI checks every request before it reaches our code. For example, the system size has to be above 0 and at most 1000 kW, the number of days has to be between 1 and 7, and the city has to be one of the five we support. Bad inputs get a clear error message instead of crashing the server. FastAPI also creates an interactive documentation page at /docs, which we used to test every endpoint during development.
+
+\subsection{How a forecast is produced}
+
+When the user asks for a forecast, the backend goes through these steps:
+
+\begin{enumerate}
+    \item It gets the hourly radiation and air temperature forecast for the chosen city and number of days from Open-Meteo.
+    \item Weather forecasts give air temperature but not panel temperature, so it estimates the panel temperature with the standard NOCT rule: panel temperature = air temperature + 0.03125 $\times$ radiation.
+    \item The predictor builds the same inputs the model was trained on (irradiation in kW/m$^2$, scaled temperatures and the sine and cosine of the hour and month) and predicts the output. Because the training data came from one large plant, the prediction is turned into a fraction of the output at full sun and then multiplied by the user's system size and a loss factor of 0.86 for wiring, dust and inverter losses.
+    \item The hourly values are added up into kWh per day and multiplied by the user's tariff to get the savings in rupees.
+    \item The physics formula is run on the same forecast and returned as a comparison line, so the user can see both estimates side by side.
+\end{enumerate}
+
+The physics formula also works as a safety net. If the model files ever fail to load, the backend switches to the formula automatically and the /health endpoint reports which one is in use. This meant the app could go live and be tested by the frontend before the model was plugged in.
+
+\subsection{Deployment}
+
+Both parts deploy straight from our GitHub repository, and each push to the main branch redeploys them automatically.
+
+\begin{itemize}
+    \item The backend runs on Vercel at https://suncast-psi.vercel.app. Vercel detects FastAPI by itself, so the only setting we changed was the root directory (backend). The chatbot's API key is stored as an environment variable in Vercel's settings and is never committed to Git.
+    \item The frontend runs on Streamlit Community Cloud, with frontend/app.py as the main file and the backend URL stored in Streamlit's secrets.
+\end{itemize}
+
+Getting the backend online took a few tries. We first set it up for Render and then for Hugging Face Spaces (we even wrote a Dockerfile for it), but by the time we deployed, both asked for a paid plan or a credit card. Vercel's free plan needed neither, ran our FastAPI code without changes, and gives the backend a public HTTPS link. The trade off is a size limit on what can be installed, so we kept the backend's requirements small and separate from the training libraries (PyTorch is not needed at all, since the app uses the gradient boosting model).
+
+\subsection{Limitations of the deployment}
+
+\begin{itemize}
+    \item The free Streamlit app goes to sleep when nobody uses it, so the first visit after a while takes a little longer to load.
+    \item The forecast is only as good as the weather forecast it is built on, and the panel temperature is an estimate rather than a measurement.
+    \item The model was trained on data from one plant over May and June, so forecasts for other seasons, like Lahore's smoggy winter, lean mostly on the radiation input.
+\end{itemize}
