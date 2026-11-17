@@ -8,3 +8,4 @@ __pycache__/
 !results/*.csv
 models/
 !backend/data/retailers.csv
+!backend/models/
