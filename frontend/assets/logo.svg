@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40" fill="none">
+  <!-- Sun Icon -->
+  <g transform="translate(4, 4)">
+    <!-- Rays -->
+    <line x1="16" y1="2" x2="16" y2="6" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="26" y1="6" x2="23" y2="9" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="30" y1="16" x2="26" y2="16" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="26" y1="26" x2="23" y2="23" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="16" y1="30" x2="16" y2="26" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="6" y1="26" x2="9" y2="23" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="2" y1="16" x2="6" y2="16" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="6" y1="6" x2="9" y2="9" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Center disk -->
+    <circle cx="16" cy="16" r="8" fill="#D9A23A" stroke="#2B2118" stroke-width="2.5"/>
+  </g>
+  <!-- Brand text -->
+  <text x="44" y="27" font-family="'Bricolage Grotesque', 'Trebuchet MS', sans-serif" font-weight="800" font-size="24" fill="#2B2118" letter-spacing="-0.03em">SunCast</text>
+</svg>

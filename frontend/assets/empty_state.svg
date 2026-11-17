@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" width="160" height="120" fill="none">
+  <!-- Sun peeking behind cloud -->
+  <g transform="translate(48, 20)">
+    <!-- Rays -->
+    <line x1="30" y1="4" x2="30" y2="10" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="48" y1="12" x2="43" y2="16" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="56" y1="30" x2="50" y2="30" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="12" y1="12" x2="17" y2="16" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="4" y1="30" x2="10" y2="30" stroke="#2B2118" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Sun Body -->
+    <circle cx="30" cy="30" r="18" fill="#D9A23A" stroke="#2B2118" stroke-width="2.5"/>
+  </g>
+  <!-- Cloud in front -->
+  <path d="M 35 85 
+           L 125 85 
+           A 18 18 0 0 0 125 49 
+           A 14 14 0 0 0 108 42 
+           A 26 26 0 0 0 58 48 
+           A 18 18 0 0 0 35 85 Z" 
+        fill="#FBF6EE" stroke="#2B2118" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- Decorative cloud puff line inside -->
+  <path d="M 64 56 A 16 16 0 0 1 92 53" stroke="#2B2118" stroke-width="2" stroke-linecap="round"/>
+</svg>
