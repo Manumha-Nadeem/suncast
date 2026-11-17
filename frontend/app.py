@@ -204,24 +204,10 @@ with tab_retailers:
     else:
         df = pd.DataFrame(rows)
         df = df.drop(columns=[c for c in df.columns if c.lower() == "city"])
-        st.dataframe(df, use_container_width=True, hide_index=True)
-
-with tab_chat:
-    st.subheader("Ask the solar assistant")
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = []
-    for m in st.session_state["messages"]:
-        with st.chat_message(m["role"]):
-            st.write(m["content"])
-
-    prompt = st.chat_input("e.g. Is a battery worth it?", max_chars=1000)
-    if prompt:
-        st.session_state["messages"].append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.write(prompt)
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                reply, err = get_chat_reply(prompt, city)
-            st.write(reply if not err else err)
-        if not err:
-            st.session_state["messages"].append({"role": "assistant", "content": reply})
+        # the backend returns all retailers, so keep only this city's rows
+        if not MOCK and "area" in df.columns:
+            df = df[df["area"].astype(str).str.contains(city, case=False, na=False)]
+        if df.empty:
+            st.info("No retailers listed for this city yet.")
+        else:
+            st.dataframe(df, use_container_width=True, hide_index=True)
