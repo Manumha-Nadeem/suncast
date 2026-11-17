@@ -133,7 +133,7 @@ with st.sidebar:
     system_kw = st.number_input("System size (kW)", min_value=0.5, max_value=1000.0, value=5.0, step=0.5)
     tariff = st.number_input("Tariff (Rs per unit)", min_value=1.0, max_value=500.0, value=60.0, step=1.0)
     days = st.slider("Days to forecast", min_value=1, max_value=7, value=3)
-    go = st.button("Get forecast", type="primary", use_container_width=True)
+    go = st.button("Get forecast", type="primary", width="stretch")
 
 if go:
     with st.spinner("Getting your forecast... (if the backend was asleep this can take about a minute)"):
@@ -169,28 +169,21 @@ with tab_forecast:
 
         daily = pd.DataFrame(result["daily"]).set_index("date")
         st.markdown("**Daily energy (kWh)**")
-        st.bar_chart(
-            daily[["kwh", "baseline_kwh"]].rename(
-                columns={"kwh": "SunCast forecast", "baseline_kwh": "Physics baseline"}),
-            color=["#F97316", "#94A3B8"],
-            stack=False,
-        )
+        st.bar_chart(daily[["kwh", "baseline_kwh"]].rename(
+            columns={"kwh": "SunCast forecast", "baseline_kwh": "Physics baseline"}))
 
         hourly = pd.DataFrame(result["hourly"])
         hourly["time"] = pd.to_datetime(hourly["time"])
         hourly = hourly.set_index("time")
         st.markdown("**Hourly power (kW)**")
         cols = ["kw"] + (["baseline_kw"] if "baseline_kw" in hourly.columns else [])
-        st.line_chart(
-            hourly[cols].rename(
-                columns={"kw": "SunCast forecast", "baseline_kw": "Physics baseline"}),
-            color=["#F97316", "#94A3B8"][:len(cols)],
-        )
+        st.line_chart(hourly[cols].rename(
+            columns={"kw": "SunCast forecast", "baseline_kw": "Physics baseline"}))
 
         with st.expander("Daily table"):
             table = daily.rename(columns={
                 "kwh": "kWh", "savings_pkr": "Savings (Rs)", "baseline_kwh": "Baseline kWh"})
-            st.dataframe(table, use_container_width=True)
+            st.dataframe(table, width="stretch")
 
         st.caption("Forecast uses weather predictions, an estimated panel temperature and an assumed 0.86 loss factor.")
 
@@ -210,4 +203,29 @@ with tab_retailers:
         if df.empty:
             st.info("No retailers listed for this city yet.")
         else:
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            st.dataframe(df, width="stretch", hide_index=True)
+
+with tab_chat:
+    st.subheader("Ask the solar assistant")
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
+    for m in st.session_state["messages"]:
+        with st.chat_message(m["role"]):
+            st.write(m["content"])
+
+    with st.form("chat_form", clear_on_submit=True):
+        prompt = st.text_input(
+            "Your question",
+            placeholder="e.g. Is a battery worth it?",
+            max_chars=1000,
+        )
+        sent = st.form_submit_button("Send")
+
+    if sent and prompt.strip():
+        st.session_state["messages"].append({"role": "user", "content": prompt})
+        with st.spinner("Thinking..."):
+            reply, err = get_chat_reply(prompt, city)
+        st.session_state["messages"].append(
+            {"role": "assistant", "content": reply if not err else err}
+        )
+        st.rerun()
